@@ -100,9 +100,13 @@ class MinimumVertexCoverProblem:
                 self.validate_solution()
                 self.display_solution()
             case pywraplp.Solver.INFEASIBLE:
+                # How did we get here? Since we pulled the nodes from the arcs,
+                # a vertex cover should always exist
                 print("Problem is infeasible: No vertex covers exist")
             case pywraplp.Solver.UNBOUNDED:
-                # How did we get here?
+                # How did we get here? All decision variables are bounded,
+                # so the objective value should be finite as long as the vertex
+                # weights are
                 print("Problem is unbounded; are all vertex weights finite?")
             case _:
                 print(f"Solver failed to converge within {self.SOLVER_TIME_LIMIT = }")
