@@ -1,10 +1,12 @@
-from ortools.linear_solver import pywraplp
 import dataclasses
 import itertools
-import random
-import warnings
 import math
+import random
 import time
+import warnings
+
+from ortools.linear_solver import pywraplp
+
 
 @dataclasses.dataclass
 class Arc:
