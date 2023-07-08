@@ -2,7 +2,31 @@
 
 A minimum-weight vertex cover solver using the [OR-Tools modeling language](https://developers.google.com/optimization) and [SCIP backend](https://www.scipopt.org/) for integer linear programming.
 
-Integer programming is *not* the most efficient way to solve the minimum-weight vertex cover problem. Instead, the purpose of this repository is to demonstrate a “Hello, World!”-type program in the OR-Tools language, and to explore using GitHub actions to compare problem compilation times for various Python versions and problem sizes.
+Integer programming is *not* the most efficient way to solve the minimum-weight vertex cover problem. Instead, the purpose of this repository is to demonstrate a “Hello, World!”-type program in the OR-Tools language, and to explore using GitHub actions to compare problem compilation times for problem sizes.
+
+If OR-Tools ever [supports PyPy](https://github.com/google/or-tools/issues/1346), I would also like to compare the performance PyPy and Cython for this script. Since the SCIP solver is written in C, using PyPy will not improve the *solution* times, but for graphical problems like vertex cover, the time to *compile* linear programs is often nontrivial, and PyPy could be helpful for large instances.
+
+## Requirements and installation
+
+Requires Python v3.11 or better because I used a `match` statement (sorry).
+
+You might install and set up a virtual environment for this script as follows (Debian):
+
+```bash
+# Clone this repo
+$ git clone "https://github.com/maxkapur/minimum_vertex_cover.git"
+# Change into the cloned directory
+$ cd minimum_vertex_cover
+# Create a virtual environment in your home directory
+$ python3 -m venv ~/python-venvs/minimum-vertex-cover
+# Activate it
+$ source ~/python-venvs/minimum-vertex-cover/bin/activate
+# Make sure it activated correctly
+$ which python
+YOUR_HOME_DIRECTORY/python-venvs/minimum-vertex-cover/bin/python
+# Install dependencies
+$ python -m pip install -r requirements.txt
+```
 
 ## Usage
 
