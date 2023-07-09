@@ -169,6 +169,6 @@ if __name__ == "__main__":
     problem.solve_problem()
     solver_time = problem.milp_solver.WallTime() / 1000.0
 
-    print(f"Problem size:               {n_nodes} nodes, {len(arcs)} arcs")
+    print(f"Problem size:               {len(problem.nodes)} nodes, {len(problem.arcs)} arcs")
     print(f"Problem compilation time:   {'%.3f' % compilation_time} seconds")
     print(f"Problem solution time:      {'%.3f' % solver_time} seconds")
