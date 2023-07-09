@@ -3,13 +3,7 @@
 
 name: Trial problems
 
-on:
-  push:
-    branches: [ $default-branch ]
-  pull_request:
-    branches: [ $default-branch ]
-  workflow_dispatch:
-    branches: [ $default-branch ]
+on: [push, workflow_dispatch]
 
 jobs:
   build:
