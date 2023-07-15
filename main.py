@@ -109,7 +109,7 @@ class MinimumVertexCoverProblem:
                 for node in self.nodes
             )
         )
-        print("... done.")
+        print(" ... done.")
 
     def solve_problem(self) -> None:
         "Solve the MILP using the backend defined in `self.SOLVER_NAME`."
@@ -122,25 +122,26 @@ class MinimumVertexCoverProblem:
         status = self.milp_solver.Solve()
         match status:
             case pywraplp.Solver.OPTIMAL:
+                print("Optimal solution found.")
                 self.validate_solution()
                 self.display_solution()
             case pywraplp.Solver.FEASIBLE:
-                warnings.warn("Solver timed out on a feasible, but potentially suboptimal solution")
+                warnings.warn("Solver timed out on a feasible, but potentially suboptimal solution.")
                 self.validate_solution()
                 self.display_solution()
             case pywraplp.Solver.INFEASIBLE:
-                print("Problem is infeasible: No vertex covers exist")
+                print("Problem is infeasible: No vertex covers exist.")
             case pywraplp.Solver.UNBOUNDED:
                 # How did we get here? All decision variables are bounded,
                 # so the objective value should be finite as long as the vertex
                 # weights are
                 print("Problem is unbounded; are all vertex weights finite?")
             case _:
-                print(f"Solver failed to converge within {self.SOLVER_TIME_LIMIT = }")
+                print(f"Solver failed to converge within {self.SOLVER_TIME_LIMIT = } seconds.")
 
     def validate_solution(self) -> None:
         "Double check that the current solution is a vertex cover."
-        print("Validating that every arc is covered", end="")
+        print("Double-checking that every arc is covered", end="")
         assert all(map(self.is_arc_covered, self.arcs))
         print(" ... done.")
 

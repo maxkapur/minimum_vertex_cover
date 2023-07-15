@@ -10,20 +10,21 @@ If OR-Tools ever [supports PyPy](https://github.com/google/or-tools/issues/1346)
 
 Requires Python v3.11 or better because I used a `match` statement (sorry).
 
-You might install and set up a virtual environment for this script as follows (Debian):
+You might install and set up a virtual environment for this script as follows (example uses Debian and the fish shell):
 
 ```bash
 # Clone this repo
 $ git clone "https://github.com/maxkapur/minimum_vertex_cover.git"
 # Change into the cloned directory
 $ cd minimum_vertex_cover
-# Create a virtual environment in your home directory
-$ python3 -m venv ~/python-venvs/minimum-vertex-cover
-# Activate it
-$ source ~/python-venvs/minimum-vertex-cover/bin/activate
+# Create a virtual environment for this script
+$ python3 -m venv "./venv"
+# Activate it (use tab completion to select the right activate
+# script for your platform)
+$ source "./venv/bin/activate.fish"
 # Make sure it activated correctly
 $ which python
-YOUR_HOME_DIRECTORY/python-venvs/minimum-vertex-cover/bin/python
+THIS_DIRECTORY/venv/bin/python
 # Install dependencies
 $ python -m pip install -r requirements.txt
 ```
@@ -34,16 +35,17 @@ The file `main.py` accepts command-line arguments to define the density and size
 
 ```bash
 $ python main.py 0.3 10
-Solution consists of the following 6 arcs:
-  Arc between nodes 1 and 2 with weight 0.0773
-  Arc between nodes 3 and 0 with weight 0.3714
-  Arc between nodes 4 and 7 with weight 0.0021
-  Arc between nodes 5 and 7 with weight 0.3101
-  Arc between nodes 6 and 3 with weight 0.0771
-  Arc between nodes 8 and 9 with weight 0.0058
-Problem size:               10 nodes, 35 arcs
+Generating decision variables ... done.
+Generating vertex cover constraints ... done.
+Generating objective function ... done.
+Solving problem using backend SCIP.
+Optimal solution found.
+Double-checking that every arc is covered ... done.
+Solution has weight 3.355 and consists of the following 7 nodes:
+[0, 1, 2, 4, 5, 6, 7]
+Problem size:               10 nodes, 28 arcs
 Problem compilation time:   0.004 seconds
-Problem solution time:      0.005 seconds
+Problem solution time:      0.007 seconds
 ```
 
 ## References
