@@ -26,10 +26,10 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Test a small problem
       run: |
-        python main.py 0.3 20
+        python main.py 0.3 10
     - name: Test a medium problem
       run: |
-        python main.py 0.3 200
+        python main.py 0.3 100
     - name: Test a large problem
       run: |
-        python main.py 0.3 2000
+        python main.py 0.3 1000

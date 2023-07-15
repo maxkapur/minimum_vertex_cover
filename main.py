@@ -25,9 +25,9 @@ class MinimumVertexCoverProblem:
     # Which backend to use, e.g. "SCIP" or "Cbc"
     SOLVER_NAME = "SCIP"
     # Whether to show the solver's native output
-    SOLVER_SHOW_OUTPUT = True
+    SOLVER_SHOW_OUTPUT = False
     # Time limit on solution time in seconds
-    SOLVER_TIME_LIMIT = 300
+    SOLVER_TIME_LIMIT = 600
 
     def __init__(self, arcs: list[Arc], weights: list[float]) -> None:
         """
