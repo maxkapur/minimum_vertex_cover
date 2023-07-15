@@ -46,6 +46,10 @@ Problem compilation time:   0.004 seconds
 Problem solution time:      0.005 seconds
 ```
 
+## References
+
+For more information about the minimum-weight vertex cover problem, see [Chandra Chekuri’s course notes](https://courses.engr.illinois.edu/cs583/sp2018/Notes/covering.pdf) (especially §4) or [Wikipedia](https://en.wikipedia.org/wiki/Vertex_cover).
+
 ## Author
 
 By [Max Kapur](https://maxkapur.com).
