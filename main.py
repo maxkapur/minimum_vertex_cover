@@ -13,10 +13,9 @@ class Arc:
     "An undirected arc between nodes `a` and `b` with weight `w`."
     a: int
     b: int
-    w: float
 
     def __repr__(self) -> str:
-        return f"Arc between nodes {self.a} and {self.b} with weight {'%.4f' % self.w}"
+        return f"Arc between nodes {self.a} and {self.b}"
 
     # Hashable
     @property
@@ -61,27 +60,27 @@ class MinimumVertexCoverProblem:
 
     def generate_decision_variables(self) -> None:
         """
-        Generate boolean variables representing whether each arc is included 
+        Generate boolean variables representing whether each node is included 
         in the optimal solution.
         """
-        self.x: dict[tuple[int, int], pywraplp.BoolVar] = dict()
-        for arc in self.arcs:
-            self.x[arc.index] = self.milp_solver.BoolVar(f"x[{arc.a},{arc.b}]")
+        self.x: dict[int, pywraplp.BoolVar] = dict()
+        for node in self.nodes:
+            self.x[node] = self.milp_solver.BoolVar(f"x[{node}]")
 
     def generate_constraints(self) -> None:
         "Generate the vertex cover constraints for each node."
-        for node in self.nodes:
+        for arc in self.arcs:
             self.milp_solver.Add(
-                sum(self.x[arc.index] for arc in self.arcs if arc.a == node or arc.b == node) >= 1,
-                f"Must select at least one arc that covers node {node}"
+                self.x[arc.a] + self.x[arc.b] >= 1,
+                f"Must select at least one endpoint of {arc}"
             )
 
     def generate_objective_function(self) -> None:
         """
         Construct the objective function, namely to minimize the sum of the weights
-        of the selected arcs.
+        of the selected nodes.
         """
-        self.milp_solver.Minimize(sum(map(lambda arc: arc.w * self.x[arc.index], self.arcs)))
+        self.milp_solver.Minimize(sum(self.x.values()))
 
     def solve_problem(self) -> None:
         "Solve the MILP using the backend defined in `self.SOLVER_NAME`."
@@ -111,31 +110,40 @@ class MinimumVertexCoverProblem:
             case _:
                 print(f"Solver failed to converge within {self.SOLVER_TIME_LIMIT = }")
 
-    def is_arc_included(self, arc) -> bool:
+    def is_node_included(self, node: int) -> bool:
         """
-        Return `True` if the decision variable corresponding to this arc has an 
-        objective value of 1, `False` if 0.
+        Return `True` if the decision variable corresponding to this node has 
+        an  objective value of 1, `False` if 0.
         """
         # Compare to 0.5 since solver will report convergence even if
         # x[a, b] == 0.999
-        return self.x[arc.index].SolutionValue() > 0.5
+        return self.x[node].SolutionValue() > 0.5
+
+    def is_arc_covered(self, arc: Arc) -> bool:
+        "Return True if one of both of the endpoints of this arc is covered."
+        match (self.is_node_included(arc.a), self.is_node_included(arc.b)):
+            case (True, False):
+                print(f"  {arc} is covered (left endpoint)")
+                return True
+            case (False, True):
+                print(f"  {arc} is covered (right endpoint)")
+                return True
+            case (True, True):
+                print(f"  {arc} is covered (both endpoints)")
+                return True
+            case (True, True):
+                print(f"  {arc} is not covered!")
+                return False
 
     def validate_solution(self) -> None:
         "Double check that the current solution is a vertex cover."
-        covered = {node: False for node in self.nodes}
-        for arc in self.arcs:
-            if self.is_arc_included(arc):
-                covered[arc.a] = True
-                covered[arc.b] = True
-        assert all(covered.values())
+        assert all(map(self.is_arc_covered, self.arcs))
 
     def display_solution(self) -> None:
         "Summarize the current solution."
-        number_of_arcs = sum(1 if self.is_arc_included(arc) else 0 for arc in self.arcs)
-        print(f"Solution consists of the following {number_of_arcs} arcs:")
-        for arc in self.arcs:
-            if self.is_arc_included(arc):
-                print(f"  {arc}")
+        nodes = list(filter(self.is_node_included, self.nodes))
+        print(f"Solution consists of the following {len(nodes)} nodes:")
+        print(nodes)
 
 
 def randexp():
@@ -157,7 +165,7 @@ if __name__ == "__main__":
     nodes = range(n_nodes)
 
     arcs = [
-        Arc(a, b, randexp())
+        Arc(a, b)
         for a, b in itertools.product(nodes, repeat=2)
         if random.random() < density
     ]
