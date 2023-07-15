@@ -6,6 +6,7 @@ import time
 import warnings
 
 from ortools.linear_solver import pywraplp
+from typing import Iterable
 
 
 @dataclasses.dataclass
@@ -15,12 +16,7 @@ class Arc:
     b: int
 
     def __repr__(self) -> str:
-        return f"Arc between nodes {self.a} and {self.b}"
-
-    # Hashable
-    @property
-    def index(self) -> tuple[int, int]:
-        return (self.a, self.b)
+        return f"Arc({self.a},{self.b})"
 
 
 class MinimumVertexCoverProblem:
@@ -29,15 +25,26 @@ class MinimumVertexCoverProblem:
     # Which backend to use, e.g. "SCIP" or "Cbc"
     SOLVER_NAME = "SCIP"
     # Whether to show the solver's native output
-    SOLVER_SHOW_OUTPUT = False
+    SOLVER_SHOW_OUTPUT = True
     # Time limit on solution time in seconds
     SOLVER_TIME_LIMIT = 300
 
-    def __init__(self, arcs: list[Arc]) -> None:
-        self.arcs = arcs
-        self.arcs.sort(key=lambda arc: arc.index)
+    def __init__(self, arcs: list[Arc], weights: list[float]) -> None:
+        """
+        Initialize an instance of the minimum vertex cover problem.
 
-        self.collect_nodes()
+        Parameters
+        ----------
+        arcs : list[Arc]
+            A list of Arcs defining the graph. Each endpoint is represented
+            by an integer.
+        weights : list[float]
+            A list of weights, where `weights[a]` is the weight or cost 
+            of including node `a` in the vertex cover.
+        """
+        self.arcs = arcs
+        self.weights = weights
+
         self.initialize_solver()
         self.generate_decision_variables()
         self.generate_constraints()
@@ -46,11 +53,10 @@ class MinimumVertexCoverProblem:
         # Let the user call this (potentially expensive function)
         # self.solve_problem()
 
-    def collect_nodes(self) -> None:
-        self.nodes: set[int] = set()
-        for arc in self.arcs:
-            self.nodes.add(arc.a)
-            self.nodes.add(arc.b)
+    @property
+    def nodes(self) -> Iterable[int]:
+        "Iterator over the node indices."
+        return range(len(self.weights))
 
     def initialize_solver(self) -> None:
         "Initialize the MILP solver."
@@ -63,27 +69,51 @@ class MinimumVertexCoverProblem:
         Generate boolean variables representing whether each node is included 
         in the optimal solution.
         """
-        self.x: dict[int, pywraplp.BoolVar] = dict()
-        for node in self.nodes:
-            self.x[node] = self.milp_solver.BoolVar(f"x[{node}]")
+        print("Generating decision variables", end="")
+        self.x: list[pywraplp.BoolVar] = [
+            self.milp_solver.BoolVar(f"x[{node}]")
+            for node in self.nodes
+        ]
+        print(" ... done.")
 
     def generate_constraints(self) -> None:
         "Generate the vertex cover constraints for each node."
+        print("Generating vertex cover constraints", end="")
         for arc in self.arcs:
+            self._validate_arc(arc)
             self.milp_solver.Add(
                 self.x[arc.a] + self.x[arc.b] >= 1,
                 f"Must select at least one endpoint of {arc}"
             )
+        print(" ... done.")
+
+    def _validate_arc(self, arc: Arc) -> None:
+        """
+        Raise an error unless both endpoints of the arc are present in
+        the current solution.
+        """
+        if not arc.a in self.nodes:
+            raise ValueError(f"Left endpoint of arc {arc} is outside the index of `self.weights`")
+        if not arc.b in self.nodes:
+            raise ValueError(f"Right endpoint of arc {arc} is outside the index of `self.weights`")
 
     def generate_objective_function(self) -> None:
         """
         Construct the objective function, namely to minimize the sum of the weights
         of the selected nodes.
         """
-        self.milp_solver.Minimize(sum(self.x.values()))
+        print("Generating objective function", end="")
+        self.milp_solver.Minimize(
+            sum(
+                self.weights[node] * self.x[node]
+                for node in self.nodes
+            )
+        )
+        print("... done.")
 
     def solve_problem(self) -> None:
         "Solve the MILP using the backend defined in `self.SOLVER_NAME`."
+        print(f"Solving problem using backend {self.SOLVER_NAME}.")
         if self.SOLVER_SHOW_OUTPUT:
             self.milp_solver.EnableOutput()
         else:
@@ -99,8 +129,6 @@ class MinimumVertexCoverProblem:
                 self.validate_solution()
                 self.display_solution()
             case pywraplp.Solver.INFEASIBLE:
-                # How did we get here? Since we pulled the nodes from the arcs,
-                # a vertex cover should always exist
                 print("Problem is infeasible: No vertex covers exist")
             case pywraplp.Solver.UNBOUNDED:
                 # How did we get here? All decision variables are bounded,
@@ -110,16 +138,14 @@ class MinimumVertexCoverProblem:
             case _:
                 print(f"Solver failed to converge within {self.SOLVER_TIME_LIMIT = }")
 
-    def is_node_included(self, node: int) -> bool:
-        """
-        Return `True` if the decision variable corresponding to this node has 
-        an  objective value of 1, `False` if 0.
-        """
-        # Compare to 0.5 since solver will report convergence even if
-        # x[a, b] == 0.999
-        return self.x[node].SolutionValue() > 0.5
+    def validate_solution(self) -> None:
+        "Double check that the current solution is a vertex cover."
+        print("Validating that every arc is covered", end="")
+        assert all(map(self.is_arc_covered, self.arcs))
+        print(" ... done.")
 
-    def is_arc_covered(self, arc: Arc) -> bool:
+    # Not used
+    def is_arc_covered_verbose(self, arc: Arc) -> bool:
         "Return True if one of both of the endpoints of this arc is covered."
         match (self.is_node_included(arc.a), self.is_node_included(arc.b)):
             case (True, False):
@@ -131,19 +157,30 @@ class MinimumVertexCoverProblem:
             case (True, True):
                 print(f"  {arc} is covered (both endpoints)")
                 return True
-            case (True, True):
+            case (False, False):
                 print(f"  {arc} is not covered!")
                 return False
 
-    def validate_solution(self) -> None:
-        "Double check that the current solution is a vertex cover."
-        assert all(map(self.is_arc_covered, self.arcs))
+    def is_arc_covered(self, arc: Arc) -> bool:
+        "Return True if one of both of the endpoints of this arc is covered."
+        return self.is_node_included(arc.a) or self.is_node_included(arc.b)
+
+    def is_node_included(self, node: int) -> bool:
+        """
+        Return `True` if the decision variable corresponding to this node has 
+        an objective value of 1, `False` if 0.
+        """
+        # Compare to 0.5 since solver will report convergence even if
+        # x[a, b] == 0.999
+        return self.x[node].SolutionValue() > 0.5
 
     def display_solution(self) -> None:
         "Summarize the current solution."
-        nodes = list(filter(self.is_node_included, self.nodes))
-        print(f"Solution consists of the following {len(nodes)} nodes:")
-        print(nodes)
+        included_nodes = list(filter(self.is_node_included, self.nodes))
+        weight = sum(self.weights[a] for a in included_nodes)
+        print(
+            f"Solution has weight {'%.3f' % weight} and consists of the following {len(included_nodes)} nodes:")
+        print(included_nodes)
 
 
 def randexp():
@@ -162,16 +199,16 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         n_nodes = int(sys.argv[2])
 
-    nodes = range(n_nodes)
+    weights = [randexp() for _ in range(n_nodes)]
 
     arcs = [
         Arc(a, b)
-        for a, b in itertools.product(nodes, repeat=2)
+        for a, b in itertools.product(range(n_nodes), repeat=2)
         if random.random() < density
     ]
 
     then = time.time()
-    problem = MinimumVertexCoverProblem(arcs)
+    problem = MinimumVertexCoverProblem(arcs, weights)
     compilation_time = time.time() - then
 
     problem.solve_problem()
