@@ -28,7 +28,7 @@ $ conda info
 
 ## Usage
 
-The file `main.py` accepts command-line arguments to define the density and size of the graph. For example, in the following run, the graph contains `10` nodes, and each arc is constructed with probability `0.3`. The arc weights are drawn from a standard exponential distribution; we can see that those that appear in the optimal solution have small weights:
+The file `main.py` accepts command-line arguments to define the density and size of the graph. For example, in the following run, the graph contains `10` nodes, and each arc is constructed with probability `0.3`. The node weights are drawn from a standard exponential distribution.
 
 ```bash
 $ conda run python ./main.py 0.3 10
