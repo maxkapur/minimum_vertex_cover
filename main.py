@@ -7,7 +7,7 @@ import warnings
 from collections.abc import Sequence
 from typing import Iterable
 
-from ortools.linear_solver import pywraplp  # type: ignore
+import pyscipopt  # type: ignore
 
 
 @dataclasses.dataclass
@@ -23,8 +23,6 @@ class Arc:
 class MinimumVertexCoverProblem:
     "An instance of the minimum-weight vertex cover problem."
 
-    # Which backend to use, e.g. "SCIP" or "Cbc"
-    SOLVER_NAME = "SCIP"
     # Whether to show the solver's native output
     SOLVER_SHOW_OUTPUT = False
     # Time limit on solution time in seconds
@@ -61,9 +59,8 @@ class MinimumVertexCoverProblem:
 
     def initialize_solver(self) -> None:
         "Initialize the MILP solver."
-        self.milp_solver: pywraplp.Solver = pywraplp.Solver.CreateSolver(self.SOLVER_NAME)
-        # .SetTimeLimit appears to use milliseconds
-        self.milp_solver.SetTimeLimit(self.SOLVER_TIME_LIMIT * 1000)
+        self.milp_solver = pyscipopt.Model()
+        self.milp_solver.setParam("limits/time", self.SOLVER_TIME_LIMIT)
 
     def generate_decision_variables(self) -> None:
         """
@@ -71,8 +68,8 @@ class MinimumVertexCoverProblem:
         in the optimal solution.
         """
         print("Generating decision variables", end="")
-        self.x: list[pywraplp.BoolVar] = [
-            self.milp_solver.BoolVar(f"x[{node}]")
+        self.x: list[pyscipopt.Variable] = [
+            self.milp_solver.addVar(f"x[{node}]", vtype="BINARY")
             for node in self.nodes
         ]
         print(" ... done.")
@@ -82,7 +79,7 @@ class MinimumVertexCoverProblem:
         print("Generating vertex cover constraints", end="")
         for arc in self.arcs:
             self._validate_arc(arc)
-            self.milp_solver.Add(
+            self.milp_solver.addCons(
                 self.x[arc.a] + self.x[arc.b] >= 1,
                 f"Must select at least one endpoint of {arc}"
             )
@@ -104,36 +101,34 @@ class MinimumVertexCoverProblem:
         of the selected nodes.
         """
         print("Generating objective function", end="")
-        self.milp_solver.Minimize(
+        self.milp_solver.setObjective(
             sum(
                 self.weights[node] * self.x[node]
                 for node in self.nodes
-            )
+            ),
+            sense="minimize"
         )
         print(" ... done.")
 
     def solve_problem(self) -> None:
         "Solve the MILP using the backend defined in `self.SOLVER_NAME`."
-        print(f"Solving problem using backend {self.SOLVER_NAME}.")
-        if self.SOLVER_SHOW_OUTPUT:
-            self.milp_solver.EnableOutput()
-        else:
-            self.milp_solver.SuppressOutput()
+        print(f"Solving problem using SCIP backend.")
+        self.milp_solver.hideOutput(quiet=not self.SOLVER_SHOW_OUTPUT)
 
-        status = self.milp_solver.Solve()
-        match status:
-            case pywraplp.Solver.OPTIMAL:
+        self.milp_solver.optimize()
+        match self.milp_solver.getStatus():
+            case "optimal":
                 print("Optimal solution found.")
                 self.validate_solution()
                 self.display_solution()
-            case pywraplp.Solver.FEASIBLE:
+            case "timelimit":
                 warnings.warn(
                     "Solver timed out on a feasible, but potentially suboptimal solution.")
                 self.validate_solution()
                 self.display_solution()
-            case pywraplp.Solver.INFEASIBLE:
+            case "infeasible":
                 print("Problem is infeasible: No vertex covers exist.")
-            case pywraplp.Solver.UNBOUNDED:
+            case "unbounded":
                 # How did we get here? All decision variables are bounded,
                 # so the objective value should be finite as long as the vertex
                 # weights are
@@ -178,7 +173,7 @@ class MinimumVertexCoverProblem:
         """
         # Compare to 0.5 since solver will report convergence even if
         # x[a, b] == 0.999
-        return self.x[node].SolutionValue() > 0.5
+        return self.milp_solver.getVal(self.x[node]) > 0.5
 
     def display_solution(self) -> None:
         "Summarize the current solution."
@@ -218,7 +213,7 @@ if __name__ == "__main__":
     compilation_time = time.time() - then
 
     problem.solve_problem()
-    solver_time = problem.milp_solver.WallTime() / 1000.0
+    solver_time = problem.milp_solver.getSolvingTime() / 1000.0
 
     print(f"Problem size:               {len(problem.nodes)} nodes, {len(problem.arcs)} arcs")
     print(f"Problem compilation time:   {'%.3f' % compilation_time} seconds")
