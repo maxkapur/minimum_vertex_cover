@@ -2,7 +2,7 @@
 
 A minimum-weight vertex cover solver using the [SCIP Optimization Suite](https://www.scipopt.org/) for integer linear programming.
 
-Integer programming is *not* the most efficient way to solve the minimum-weight vertex cover problem. Instead, the purpose of this repository is to demonstrate a “Hello, World!”-type program using SCIP’s toolset, and to explore using GitHub actions to compare problem compilation times for problem sizes.
+Integer programming is *not* the most efficient way to solve the minimum-weight vertex cover problem. Instead, the purpose of this repository is to demonstrate a “Hello, World!”-type program using SCIP’s toolset, and to explore using GitHub actions to compare problem compilation times for different problem sizes.
 
 ## Requirements and installation
 
