@@ -1,10 +1,8 @@
 # Minimum-weight vertex cover
 
-A minimum-weight vertex cover solver using the [OR-Tools modeling language](https://developers.google.com/optimization) and [SCIP backend](https://www.scipopt.org/) for integer linear programming.
+A minimum-weight vertex cover solver using the [SCIP Optimization Suite](https://www.scipopt.org/) for integer linear programming.
 
-Integer programming is *not* the most efficient way to solve the minimum-weight vertex cover problem. Instead, the purpose of this repository is to demonstrate a “Hello, World!”-type program in the OR-Tools language, and to explore using GitHub actions to compare problem compilation times for problem sizes.
-
-If OR-Tools ever [supports PyPy](https://github.com/google/or-tools/issues/1346), I would also like to compare the performance PyPy and Cython for this script. Since the SCIP solver is written in C, using PyPy will not improve the *solution* times, but for graphical problems like vertex cover, the time to *compile* linear programs is often nontrivial, and PyPy could be helpful for large instances.
+Integer programming is *not* the most efficient way to solve the minimum-weight vertex cover problem. Instead, the purpose of this repository is to demonstrate a “Hello, World!”-type program using SCIP’s toolset, and to explore using GitHub actions to compare problem compilation times for problem sizes.
 
 ## Requirements and installation
 
