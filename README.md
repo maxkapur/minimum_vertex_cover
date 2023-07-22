@@ -8,7 +8,7 @@ If OR-Tools ever [supports PyPy](https://github.com/google/or-tools/issues/1346)
 
 ## Requirements and installation
 
-Requires Python v3.11 or better because I used a `match` statement (sorry).
+Requires Python v3.10 or better because I used a `match` statement (sorry).
 
 You might install and set up a virtual environment for this script as follows (example uses Debian and the fish shell):
 
