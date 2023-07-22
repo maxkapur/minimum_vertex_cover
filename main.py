@@ -4,9 +4,10 @@ import math
 import random
 import time
 import warnings
-
-from ortools.linear_solver import pywraplp
+from collections.abc import Sequence
 from typing import Iterable
+
+from ortools.linear_solver import pywraplp  # type: ignore
 
 
 @dataclasses.dataclass
@@ -54,7 +55,7 @@ class MinimumVertexCoverProblem:
         # self.solve_problem()
 
     @property
-    def nodes(self) -> Iterable[int]:
+    def nodes(self) -> Sequence[int]:
         "Iterator over the node indices."
         return range(len(self.weights))
 
@@ -126,7 +127,8 @@ class MinimumVertexCoverProblem:
                 self.validate_solution()
                 self.display_solution()
             case pywraplp.Solver.FEASIBLE:
-                warnings.warn("Solver timed out on a feasible, but potentially suboptimal solution.")
+                warnings.warn(
+                    "Solver timed out on a feasible, but potentially suboptimal solution.")
                 self.validate_solution()
                 self.display_solution()
             case pywraplp.Solver.INFEASIBLE:
@@ -161,6 +163,9 @@ class MinimumVertexCoverProblem:
             case (False, False):
                 print(f"  {arc} is not covered!")
                 return False
+
+        # How did we get here?
+        raise RuntimeError
 
     def is_arc_covered(self, arc: Arc) -> bool:
         "Return True if one of both of the endpoints of this arc is covered."
