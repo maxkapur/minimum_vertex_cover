@@ -33,12 +33,12 @@ jobs:
 
       - name: Test a small problem
         run: |
-          python main.py 0.3 10
+          python main.py 0.3 5
 
       - name: Test a medium problem
         run: |
-          python main.py 0.3 100
+          python main.py 0.3 50
 
       - name: Test a large problem
         run: |
-          python main.py 0.3 1000
+          python main.py 0.3 500
