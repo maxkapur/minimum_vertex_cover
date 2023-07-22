@@ -8,25 +8,26 @@ If OR-Tools ever [supports PyPy](https://github.com/google/or-tools/issues/1346)
 
 ## Requirements and installation
 
-Requires Python v3.10 or better because I used a `match` statement (sorry).
+Requires Python v3.10 or better because I used a `match` statement (sorry). Also requires a conda environment ([Miniconda](https://docs.conda.io/en/latest/miniconda.html) is sufficient) in order to `conda install` pyscipopt along with its binary dependencies.
 
-You might install and set up a virtual environment for this script as follows (example uses Debian and the fish shell):
+Assuming you have conda and git installed, you might install and set up a virtual environment for this script as follows (example uses Debian and the bash shell):
 
 ```bash
 # Clone this repo
 $ git clone "https://github.com/maxkapur/minimum_vertex_cover.git"
 # Change into the cloned directory
-$ cd minimum_vertex_cover
+$ cd ./minimum_vertex_cover
 # Create a virtual environment for this script
-$ python3 -m venv "./venv"
-# Activate it (use tab completion to select the right activate
-# script for your platform)
-$ source "./venv/bin/activate.fish"
+$ conda create -p ./venv
+# Activate it
+$ conda activate "$(pwd)/venv"
 # Make sure it activated correctly
-$ which python
-THIS_DIRECTORY/venv/bin/python
+$ conda info         
+    active environment : THIS_DIRECTORY/venv
+# Add conda-forge channel (required to install pyscipopt)
+$ conda config --add channels conda-forge
 # Install dependencies
-$ python -m pip install -r requirements.txt
+$ conda install --file ./requirements.txt
 ```
 
 ## Usage
