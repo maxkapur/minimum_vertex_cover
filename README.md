@@ -16,16 +16,14 @@ $ git clone "https://github.com/maxkapur/minimum_vertex_cover.git"
 # Change into the cloned directory
 $ cd ./minimum_vertex_cover
 # Create a virtual environment for this script
-$ conda create -p ./venv
+# Add conda-forge channel (required to install pyscipopt)
+# Install dependencies
+$ conda create -p ./venv -c conda-forge --file ./requirements.txt
 # Activate it
 $ conda activate "$(pwd)/venv"
 # Make sure it activated correctly
 $ conda info         
     active environment : THIS_DIRECTORY/venv
-# Add conda-forge channel (required to install pyscipopt)
-$ conda config --add channels conda-forge
-# Install dependencies
-$ conda install --file ./requirements.txt
 ```
 
 ## Usage
@@ -33,7 +31,7 @@ $ conda install --file ./requirements.txt
 The file `main.py` accepts command-line arguments to define the density and size of the graph. For example, in the following run, the graph contains `10` nodes, and each arc is constructed with probability `0.3`. The arc weights are drawn from a standard exponential distribution; we can see that those that appear in the optimal solution have small weights:
 
 ```bash
-$ python main.py 0.3 10
+$ conda run python ./main.py 0.3 10
 Generating decision variables ... done.
 Generating vertex cover constraints ... done.
 Generating objective function ... done.
