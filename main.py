@@ -12,7 +12,7 @@ import pyscipopt  # type: ignore
 
 @dataclasses.dataclass
 class Arc:
-    "An undirected arc between nodes `a` and `b` with weight `w`."
+    "An undirected arc between nodes `a` and `b`."
     a: int
     b: int
 
@@ -38,8 +38,8 @@ class MinimumVertexCoverProblem:
             A list of Arcs defining the graph. Each endpoint is represented
             by an integer.
         weights : list[float]
-            A list of weights, where `weights[a]` is the weight or cost 
-            of including node `a` in the vertex cover.
+            A list of weights, where `weights[i]` is the weight or cost 
+            of including node `i` in the vertex cover.
         """
         self.arcs = arcs
         self.weights = weights
