@@ -184,9 +184,34 @@ class MinimumVertexCoverProblem:
         print(included_nodes)
 
 
-def randexp():
+def randexp() -> float:
     "A random draw from the standard exponential distribution."
     return -math.log(random.random())
+
+
+def create_random_instance(density: float, n_nodes: int) -> tuple[list[Arc], list[float]]:
+    """
+    Construct random `arcs` and `weights` to define a random instance
+    of the minimum-weight vertex cover problem on a graph with `n_nodes`
+    nodes. The node weights are drawn from a standard exponential distribution.
+    The arcs are selected randomly from the set of possible arcs; each arc 
+    appears with probability `density`.
+    """
+    weights = [randexp() for _ in range(n_nodes)]
+
+    # Sort the weights in ascending order. Because the arcs are generated
+    # independently, this has no effect on the difficulty of the problem,
+    # but it interesting to inspect the optimal solution and see whether
+    # most of the selected nodes are those with low indices (i.e. low weights)
+    weights.sort()
+
+    arcs = [
+        Arc(a, b)
+        for a, b in itertools.product(range(n_nodes), repeat=2)
+        if random.random() < density
+    ]
+
+    return arcs, weights
 
 
 if __name__ == "__main__":
@@ -200,13 +225,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         n_nodes = int(sys.argv[2])
 
-    weights = [randexp() for _ in range(n_nodes)]
-
-    arcs = [
-        Arc(a, b)
-        for a, b in itertools.product(range(n_nodes), repeat=2)
-        if random.random() < density
-    ]
+    arcs, weights = create_random_instance(density, n_nodes)
 
     then = time.time()
     problem = MinimumVertexCoverProblem(arcs, weights)
